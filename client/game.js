@@ -1,14 +1,14 @@
 ﻿const API_BASE_URL = 'http://localhost:6047/api';
 
 const CARD_EMOJIS = {
-  1: '馃惗',
-  2: '馃惐',
-  3: '馃惣',
-  4: '馃',
-  5: '馃',
-  6: '馃惛',
-  7: '馃惖',
-  8: '馃惃'
+  1: '🐶',
+  2: '🐱',
+  3: '🦊',
+  4: '🐻',
+  5: '🐼',
+  6: '🐨',
+  7: '🦁',
+  8: '🐸'
 };
 
 const gameBoard = document.getElementById('gameBoard');
@@ -25,6 +25,7 @@ const playerNameInput = document.getElementById('playerName');
 const submitScoreBtn = document.getElementById('submitScoreBtn');
 const playAgainBtn = document.getElementById('playAgainBtn');
 const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+const clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
 const leaderboardList = document.getElementById('leaderboardList');
 
 let cards = [];
@@ -69,7 +70,7 @@ async function fetchShuffledCards() {
     const data = await response.json();
     return data.cards;
   } catch (error) {
-    console.error('鑾峰彇娲楃墝鏁版嵁澶辫触:', error);
+    console.error('Failed to fetch shuffled cards:', error);
     const fallbackCards = [];
     for (let i = 1; i <= 8; i++) {
       fallbackCards.push(i, i);
@@ -94,7 +95,7 @@ function renderCards(cardIds) {
     
     const cardFront = document.createElement('div');
     cardFront.className = 'card-face card-front';
-    cardFront.textContent = CARD_EMOJIS[cardId] || '鉂?;
+    cardFront.textContent = CARD_EMOJIS[cardId] || '❓';
     
     card.appendChild(cardBack);
     card.appendChild(cardFront);
@@ -193,7 +194,7 @@ function endGame() {
 }
 
 async function submitScore() {
-  const playerName = playerNameInput.value.trim() || '鍖垮悕鐜╁';
+  const playerName = playerNameInput.value.trim() || 'Anonymous';
   const timeInSeconds = Math.floor(elapsedTime / 1000);
 
   try {
@@ -211,13 +212,13 @@ async function submitScore() {
     const data = await response.json();
     
     if (data.success) {
-      alert(`鎭枩锛佷綘鎺掑悕绗?${data.rank} 鍚嶏紒`);
+      alert(`Congratulations! You are ranked #${data.rank}!`);
       winModal.classList.add('hidden');
       showLeaderboard();
     }
   } catch (error) {
-    console.error('鎻愪氦鎴愮哗澶辫触:', error);
-    alert('鎻愪氦鎴愮哗澶辫触锛岃绋嶅悗閲嶈瘯');
+    console.error('Failed to submit score:', error);
+    alert('Failed to submit score, please try again later');
   }
 }
 
@@ -227,8 +228,8 @@ async function showLeaderboard() {
     const data = await response.json();
     renderLeaderboard(data.leaderboard);
   } catch (error) {
-    console.error('鑾峰彇鎺掕姒滃け璐?', error);
-    leaderboardList.innerHTML = '<li>鍔犺浇鎺掕姒滃け璐?/li>';
+    console.error('Failed to load leaderboard:', error);
+    leaderboardList.innerHTML = '<li>Failed to load leaderboard</li>';
   }
   
   leaderboardModal.classList.remove('hidden');
@@ -236,7 +237,7 @@ async function showLeaderboard() {
 
 function renderLeaderboard(leaderboard) {
   if (!leaderboard || leaderboard.length === 0) {
-    leaderboardList.innerHTML = '<li class="empty-message">鏆傛棤璁板綍锛屽揩鏉ユ寫鎴樺惂锛?/li>';
+    leaderboardList.innerHTML = '<li class="empty-message">No records yet, come challenge!</li>';
     return;
   }
 
@@ -262,6 +263,28 @@ function renderLeaderboard(leaderboard) {
   });
 }
 
+async function clearLeaderboard() {
+  if (!confirm('Are you sure you want to clear the leaderboard? This action cannot be undone!')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/leaderboard`, {
+      method: 'DELETE'
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      renderLeaderboard(data.leaderboard);
+      alert('Leaderboard cleared!');
+    }
+  } catch (error) {
+    console.error('Failed to clear leaderboard:', error);
+    alert('Failed to clear leaderboard, please try again later');
+  }
+}
+
 restartBtn.addEventListener('click', initGame);
 playAgainBtn.addEventListener('click', () => {
   winModal.classList.add('hidden');
@@ -271,6 +294,7 @@ leaderboardBtn.addEventListener('click', showLeaderboard);
 closeLeaderboardBtn.addEventListener('click', () => {
   leaderboardModal.classList.add('hidden');
 });
+clearLeaderboardBtn.addEventListener('click', clearLeaderboard);
 submitScoreBtn.addEventListener('click', submitScore);
 
 initGame();

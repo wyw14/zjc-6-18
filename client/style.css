@@ -150,6 +150,18 @@ h1 {
   color: #333;
 }
 
+.btn-danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .modal {
   position: fixed;
   top: 0;
